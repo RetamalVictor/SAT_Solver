@@ -20,10 +20,9 @@ import time
 import argparse
 
 stats = {
-    "backs":0,
-    "time":0,
+    "backs": 0,
+    "time": 0,
 }
-
 
 
 def SAT(rules):
@@ -58,13 +57,13 @@ def solve(rules, solution, heuristic):
     copy_rules = copy.deepcopy(rules)
 
     # implement heuristics
-    if heuristic == '1':
+    if heuristic == "1":
         picked_literal = random.choice(unique_literals)
-    if heuristic == '2':
+    if heuristic == "2":
         picked_literal = mrv(solution, unique_literals)
-    if heuristic == '3':
+    if heuristic == "3":
         picked_literal = JW(rules)
-    
+
     new_rules = simplify(copy_rules, picked_literal)
     new_solution = solution.copy()
     new_solution.append(picked_literal)
@@ -78,8 +77,8 @@ def solve(rules, solution, heuristic):
     if result[0]:
         return result
 
-    #print("backbranch")
-    stats['backs'] =stats['backs'] + 1
+    # print("backbranch")
+    stats["backs"] = stats["backs"] + 1
     picked_literal = -picked_literal
     new_rules = simplify(rules, picked_literal)
     new_solution = solution.copy()
@@ -91,6 +90,7 @@ def solve(rules, solution, heuristic):
 
     # add picked literal to the solution
     return solve(new_rules, new_solution, heuristic)
+
 
 def dpll2(rules, heuristic):
     """
@@ -108,18 +108,19 @@ def dpll2(rules, heuristic):
 
     return solve(rules, removed_clauses, heuristic)
 
+
 def run_sat(args):
     """
     Reads input arguments and sets up the right rules for the SAT problem
     """
     try:
-        file_path = str(args['f'])
+        file_path = str(args["f"])
     except:
         print("Sudoku file not found, running default")
         file_path = "sudokus/1000 sudokus.txt"
-    heuristic = str(args['S'])
+    heuristic = str(args["S"])
     try:
-        sudoku_nr = int(args['n'])
+        sudoku_nr = int(args["n"])
     except:
         sudoku_nr = 1
     # stores each sudoku example in a list
@@ -127,40 +128,41 @@ def run_sat(args):
         sudoku_list = f.readlines()
 
     # get the CNF of the current sudoku example (sudoku_setup_CNF)
-    sudoku_setup_CNF, sudoku_setup_DIMACS, sudoku_size = line2CNF(sudoku_list[sudoku_nr])
+    sudoku_setup_CNF, sudoku_setup_DIMACS, sudoku_size = line2CNF(
+        sudoku_list[sudoku_nr]
+    )
 
     # create rules and add setup rules as unit clauses
     try:
-        four = int(args['t'])
-        rules = read_DIMACS(os.path.join('sudokus/sudoku-rules-4x4.txt'))
+        four = int(args["t"])
+        rules = read_DIMACS(os.path.join("sudokus/sudoku-rules-4x4.txt"))
 
     except:
-         rules = read_DIMACS(os.path.join('sudokus/sudoku-rules-9x9.txt'))
+        rules = read_DIMACS(os.path.join("sudokus/sudoku-rules-9x9.txt"))
     rules.extend(sudoku_setup_CNF)
 
     # start the dpll2 algorithm
     final_results = dpll2(rules, heuristic)
     return final_results
-    
+
+
 def main():
     # Create an argument parser to parse the arguments
-    print("Introduce 9x9 sudoku. Format SAT.py -S<Heuristic> -f<file> -n<sudoku number if needed>")
+    print(
+        "Introduce 9x9 sudoku. Format SAT.py -S<Heuristic> -f<file> -n<sudoku number if needed>"
+    )
     print("For 4x4 Format SAT.py -SHeuristic -ffile -nsudoku number if needed -t4")
     ap = argparse.ArgumentParser()
-    ap.add_argument("-S", required=True,
-                    help="S1:DPLL, S2:MRV, S3:JW-OS")
-    ap.add_argument("-f", required=False,
-                    help="Input file.")
-    ap.add_argument("-n", required=False,
-                    help="Sudoku number in file")
-    ap.add_argument("-t", required=False,
-                    help="4x4 sudoku activated") 
+    ap.add_argument("-S", required=True, help="S1:DPLL, S2:MRV, S3:JW-OS")
+    ap.add_argument("-f", required=False, help="Input file.")
+    ap.add_argument("-n", required=False, help="Sudoku number in file")
+    ap.add_argument("-t", required=False, help="4x4 sudoku activated")
     args = vars(ap.parse_args())
 
     final_results = run_sat(args)
-    file_name = str(args['f'])
-    to_DIMAC(final_results[1],file_name)
-    
+    file_name = str(args["f"])
+    to_DIMAC(final_results[1], file_name)
+
 
 if __name__ == "__main__":
 
